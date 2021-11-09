@@ -1,6 +1,7 @@
 package net.ivanvega.mimultimediab2021.ui.notifications;
 
 import android.Manifest;
+import android.content.Context;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,6 +31,15 @@ import java.io.IOException;
 import java.util.Map;
 
 public class NotificationsFragment extends Fragment {
+
+    private ActivityResultLauncher<String[]> laucherPermmison;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        validarAudioWriteExternal();
+
+    }
 
     private NotificationsViewModel notificationsViewModel;
     private FragmentNotificationsBinding binding;
@@ -67,8 +77,8 @@ public class NotificationsFragment extends Fragment {
                 return ;
             }
 
-             validarAudioWriteExternal();
-
+            
+            laucherPermmison.launch(permissions);
             /*
             recorder.stop();
             recorder.reset();   // You can reuse the object by going back to setAudioSource() step
@@ -88,7 +98,7 @@ public class NotificationsFragment extends Fragment {
 
     private void validarAudioWriteExternal() {
 
-           ActivityResultLauncher<String []> laucherPermmison = registerForActivityResult(
+           laucherPermmison = registerForActivityResult(
                   new ActivityResultContracts.RequestMultiplePermissions(),
                   new ActivityResultCallback<Map<String, Boolean>>() {
                       @Override
@@ -111,10 +121,7 @@ public class NotificationsFragment extends Fragment {
                       }
                   }
           );
-
-           laucherPermmison.launch(permissions);
-
-
+           
     }
 
     private void grabarAudio() {
@@ -137,7 +144,7 @@ public class NotificationsFragment extends Fragment {
             e.printStackTrace();
         }
         recorder.start();   // Recording is now started
-        btnGr.setText("Deneter");
+        btnGr.setText("Detener");
     }
 
     @Override
