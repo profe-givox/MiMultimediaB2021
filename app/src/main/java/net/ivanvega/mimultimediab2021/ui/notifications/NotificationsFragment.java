@@ -2,10 +2,12 @@ package net.ivanvega.mimultimediab2021.ui.notifications;
 
 import android.Manifest;
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +35,7 @@ import java.util.Map;
 public class NotificationsFragment extends Fragment {
 
     private ActivityResultLauncher<String[]> laucherPermmison;
+    private MediaPlayer mediaPlayer;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -77,13 +80,28 @@ public class NotificationsFragment extends Fragment {
                 return ;
             }
 
-            
-            laucherPermmison.launch(permissions);
+            if (permissionToRecordAccepted && permissionToWriteAccepted)
+                grabarAudio();
+
             /*
             recorder.stop();
             recorder.reset();   // You can reuse the object by going back to setAudioSource() step
             recorder.release(); // Now the object cannot be reused
              */
+        });
+
+        btmRe.setOnClickListener(view -> {
+            if(btnGr.getText().toString().equals("Detener")){
+                mediaPlayer.stop();
+                mediaPlayer.release();
+                btmRe.setText("Reproducir");
+                return ;
+            }
+
+            if (permissionToRecordAccepted && permissionToWriteAccepted)
+                reproducirAudio();
+
+
         });
 
         final TextView textView = binding.textNotifications;
@@ -93,7 +111,28 @@ public class NotificationsFragment extends Fragment {
                 textView.setText(s);
             }
         });
+
+        laucherPermmison.launch(permissions);
+
         return root;
+    }
+
+    private void reproducirAudio() {
+        mediaPlayer = new MediaPlayer();
+        try {
+            mediaPlayer.setDataSource(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getPath() +
+                            "/" + "miaudio.mp3"
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        mediaPlayer.setOnPreparedListener(mediaPlayer1 -> {
+            mediaPlayer1.start();
+            btmRe.setText("Detener");
+        });
+        mediaPlayer.prepareAsync();
+
     }
 
     private void validarAudioWriteExternal() {
@@ -112,11 +151,9 @@ public class NotificationsFragment extends Fragment {
                               permissionToWriteAccepted = true;
                           }
 
-                          if (permissionToRecordAccepted && permissionToRecordAccepted){
-                                grabarAudio();
-                          }else{
-                              //Sin permisos
-                          }
+                          btnGr.setEnabled(permissionToRecordAccepted);
+                          btmRe.setEnabled(permissionToWriteAccepted);
+
 
                       }
                   }
@@ -130,6 +167,9 @@ public class NotificationsFragment extends Fragment {
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
 
         File audio = new File(dirMusicExternalPublic, "miaudio.mp3");
+
+        Log.i("PATHFILEAUDIO", audio.getPath());
+        Log.i("PATHFILEAUDIO", audio.getAbsolutePath());
 
         recorder = new MediaRecorder();
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
