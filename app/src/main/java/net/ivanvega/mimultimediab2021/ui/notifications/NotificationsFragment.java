@@ -56,7 +56,9 @@ public class NotificationsFragment extends Fragment {
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
-    private String [] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private String [] permissions =
+            {Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private boolean permissionToWriteAccepted = false;
 
 
@@ -80,7 +82,7 @@ public class NotificationsFragment extends Fragment {
                 return ;
             }
 
-            if (permissionToRecordAccepted && permissionToWriteAccepted)
+
                 grabarAudio();
 
             /*
@@ -122,7 +124,7 @@ public class NotificationsFragment extends Fragment {
         try {
             mediaPlayer.setDataSource(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getPath() +
-                            "/" + "miaudio.mp3"
+                            "/" + "miaudiob.mp3"
             );
         } catch (IOException e) {
             e.printStackTrace();
@@ -166,10 +168,14 @@ public class NotificationsFragment extends Fragment {
         File dirMusicExternalPublic =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
 
-        File audio = new File(dirMusicExternalPublic, "miaudio.mp3");
+        File audio = new File(dirMusicExternalPublic, "miaudiob.mp3");
+        /*
 
+         */
         Log.i("PATHFILEAUDIO", audio.getPath());
         Log.i("PATHFILEAUDIO", audio.getAbsolutePath());
+
+
 
         recorder = new MediaRecorder();
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
