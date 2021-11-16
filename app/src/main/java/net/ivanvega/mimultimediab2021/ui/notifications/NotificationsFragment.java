@@ -1,12 +1,17 @@
 package net.ivanvega.mimultimediab2021.ui.notifications;
 
 import android.Manifest;
+import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,17 +35,41 @@ import net.ivanvega.mimultimediab2021.databinding.FragmentNotificationsBinding;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class NotificationsFragment extends Fragment {
 
     private ActivityResultLauncher<String[]> laucherPermmison;
+    private ActivityResultLauncher<String[]> launcherSAF;
     private MediaPlayer mediaPlayer;
+    private Button btnMul;
+
+    List<Video> videoList = new ArrayList<Video>();
+
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         validarAudioWriteExternal();
+
+        launcherSAF = registerForActivityResult(
+                new ActivityResultContracts.OpenDocument(),
+                new ActivityResultCallback<Uri>() {
+                    @Override
+                    public void onActivityResult(Uri result) {
+                        Log.i("SAFUriResult", result.toString());
+                        startActivity(
+                                new Intent(
+                                        Intent.ACTION_VIEW
+                                ).setData(result)
+                        );
+                    }
+                }
+
+        );
 
     }
 
@@ -58,7 +87,9 @@ public class NotificationsFragment extends Fragment {
     private boolean permissionToRecordAccepted = false;
     private String [] permissions =
             {Manifest.permission.RECORD_AUDIO,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+            };
     private boolean permissionToWriteAccepted = false;
 
 
@@ -72,6 +103,17 @@ public class NotificationsFragment extends Fragment {
 
         btnGr = binding.btnRecord;
         btmRe = binding.btnRepro;
+        btnMul = binding.btnMult;
+
+        binding.btnSAF.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                launcherSAF.launch(new String[]{"application/msword",
+                "text/html", "application/pdf"});
+            }
+        });
+
+        btnMul.setOnClickListener(view -> listarMultimedia()  );
 
         btnGr.setOnClickListener(view -> {
 
@@ -81,10 +123,7 @@ public class NotificationsFragment extends Fragment {
                 btnGr.setText("Grabar");
                 return ;
             }
-
-
                 grabarAudio();
-
             /*
             recorder.stop();
             recorder.reset();   // You can reuse the object by going back to setAudioSource() step
@@ -117,6 +156,60 @@ public class NotificationsFragment extends Fragment {
         laucherPermmison.launch(permissions);
 
         return root;
+    }
+
+    private void listarMultimedia() {
+        String[] projection = new String[] {
+                MediaStore.Video.Media._ID,
+                MediaStore.Video.Media.DISPLAY_NAME,
+                MediaStore.Video.Media.DURATION,
+                MediaStore.Video.Media.SIZE
+        };
+        String selection = MediaStore.Video.Media.DURATION +
+                " >= ?";
+        String[] selectionArgs = new String[] {
+                String.valueOf(TimeUnit.MILLISECONDS.convert(1, TimeUnit.MINUTES))
+            };
+
+        String sortOrder = MediaStore.Video.Media.DISPLAY_NAME + " ASC";
+
+        try (Cursor cursor = getActivity().getContentResolver().query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder
+        )) {
+            // Cache column indices.
+            int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
+            int nameColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME);
+            int durationColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION);
+            int sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE);
+
+            Log.i("MulVideo", String.valueOf( cursor.getCount()));
+
+            while (cursor.moveToNext()) {
+                // Get values of columns for a given video.
+                long id = cursor.getLong(idColumn);
+                String name = cursor.getString(nameColumn);
+                int duration = cursor.getInt(durationColumn);
+                int size = cursor.getInt(sizeColumn);
+
+                Uri contentUri = ContentUris.withAppendedId(
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
+
+                // Stores column values and the contentUri in a local object
+                // that represents the media file.
+                videoList.add(new Video(contentUri, name, duration, size));
+            }
+
+            for (Video video : videoList) {
+                Log.i("MulVideo", video.toString());
+            }
+
+        }
     }
 
     private void reproducirAudio() {

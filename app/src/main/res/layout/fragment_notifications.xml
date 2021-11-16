@@ -13,6 +13,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:text="Consultar Media Video"
         android:textAlignment="center"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -41,6 +42,24 @@
         android:text="REPRODUCIR"
         app:layout_constraintEnd_toEndOf="@+id/text_notifications"
         app:layout_constraintTop_toBottomOf="@+id/text_notifications" />
+
+    <Button
+        android:id="@+id/btnMult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="80dp"
+        android:text="Consultar Media Video"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnRecord" />
+
+    <Button
+        android:id="@+id/btnSAF"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SAF"
+        tools:layout_editor_absoluteX="158dp"
+        tools:layout_editor_absoluteY="311dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
